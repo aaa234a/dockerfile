@@ -1,14 +1,16 @@
 FROM coturn/coturn:latest
 
 USER root
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# curl（IP取得用）と python3（ダミーWebサーバー用）をインストール
+RUN apt-get update && apt-get install -y curl python3 && rm -rf /var/lib/apt/lists/*
 
 USER coturn
 
-# 1. realm を適切な文字列に変更
-# 2. shell形式のCMDにして変数を確実に展開させる
-CMD turnserver \
-    --listening-port=${PORT:-3478} \
+# 1. バックグラウンドでPythonの簡易Webサーバーを起動（RenderのHealth Check対策）
+# 2. その後、Coturnを起動
+CMD python3 -m http.server $PORT & \
+    turnserver \
+    --listening-port=3479 \
     --external-ip=$(curl -s ifconfig.me) \
     --no-udp \
     --no-udp-relay \
