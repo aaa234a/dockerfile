@@ -11,7 +11,7 @@ USER coturn
 # --no-stdout-log を追加してログ出力を安定させ、
 # ポートはRenderが提供する $PORT 環境変数を優先的に使用します
 CMD turnserver \
-    --listening-port=${PORT:-443} \
+    --listening-port=${PORT:-3478} \
     --external-ip=$(curl -s ifconfig.me) \
     --no-udp \
     --no-udp-relay \
