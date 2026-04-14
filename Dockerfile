@@ -1,15 +1,22 @@
 FROM coturn/coturn:latest
 
-# Renderの環境変数 PORT を使用するか、443を強制
-ENV PORT=3478
+# rootユーザーでcurlをインストール（IP取得用）
+USER root
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# TCPのみ、443ポートで待ち受け、リレーポートを固定（Renderでは実質1ポート運用）
+# Coturnの一般ユーザーに戻す
+USER coturn
+
+# Render環境に合わせた起動設定
+# --no-stdout-log を追加してログ出力を安定させ、
+# ポートはRenderが提供する $PORT 環境変数を優先的に使用します
 CMD turnserver \
-    --listening-port=$PORT \
+    --listening-port=${PORT:-443} \
     --external-ip=$(curl -s ifconfig.me) \
     --no-udp \
     --no-udp-relay \
     --tcp-self-relay \
     --realm=://onrender.com \
     --user=myuser:mypassword \
-    --lt-cred-mech
+    --lt-cred-mech \
+    --no-stdout-log
