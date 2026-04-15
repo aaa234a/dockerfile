@@ -1,2 +1,3 @@
-# Webサーバー系（RenderでHTTP配信用）
 flask
+flask-sock
+gunicorn
