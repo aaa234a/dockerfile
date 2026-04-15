@@ -1,27 +1,23 @@
 from flask import Flask, send_from_directory
-from flask_sock import Sock
+import os
 
-app = Flask(__name__)
-sock = Sock(app)
+app = Flask(__name__, static_folder="noVNC")
 
-clients = []
-
+# ルートはvnc.html
 @app.route("/")
 def index():
-    return send_from_directory(".", "vnc.html")
+    return send_from_directory("noVNC", "vnc.html")
 
-@sock.route("/ws")
-def ws(ws):
-    clients.append(ws)
+# 🔥 重要：ディレクトリ丸ごと配信
+@app.route("/<path:path>")
+def static_files(path):
+    file_path = os.path.join("noVNC", path)
 
-    while True:
-        data = ws.receive()
-        if data is None:
-            break
+    # 存在チェック（デバッグ用）
+    if not os.path.exists(file_path):
+        return f"404 NOT FOUND: {path}", 404
 
-        for c in clients:
-            if c != ws:
-                c.send(data)
+    return send_from_directory("noVNC", path)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
