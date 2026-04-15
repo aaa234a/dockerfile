@@ -5,11 +5,11 @@ app = Flask(__name__, static_folder="noVNC")
 
 @app.route("/")
 def index():
-    return send_from_directory("noVNC", "vnc.html")
+    return send_from_directory(".", "vnc.html")
 
 @app.route("/<path:path>")
 def static_files(path):
-    return send_from_directory("noVNC", path)
+    return send_from_directory(".", path)
 
 # 🔥 websockify起動
 subprocess.Popen([
