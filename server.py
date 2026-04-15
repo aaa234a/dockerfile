@@ -1,31 +1,27 @@
-import socket
-import threading
-from http.server import SimpleHTTPRequestHandler, HTTPServer
+from flask import Flask, send_from_directory
+from flask_sock import Sock
+
+app = Flask(__name__)
+sock = Sock(app)
 
 clients = []
 
-def handle(conn):
-    clients.append(conn)
-    try:
-        while True:
-            data = conn.recv(4096)
-            if not data:
-                break
-            for c in clients:
-                if c != conn:
-                    c.sendall(data)
-    except:
-        pass
+@app.route("/")
+def index():
+    return send_from_directory(".", "vnc.html")
 
-def socket_server():
-    s = socket.socket()
-    s.bind(("0.0.0.0", 9999))
-    s.listen()
+@sock.route("/ws")
+def ws(ws):
+    clients.append(ws)
 
     while True:
-        conn, _ = s.accept()
-        threading.Thread(target=handle, args=(conn,)).start()
+        data = ws.receive()
+        if data is None:
+            break
 
-threading.Thread(target=socket_server, daemon=True).start()
+        for c in clients:
+            if c != ws:
+                c.send(data)
 
-HTTPServer(("0.0.0.0", 10000), SimpleHTTPRequestHandler).serve_forever()
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
